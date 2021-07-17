@@ -83,9 +83,9 @@ def extractor(queryDict):
     try:
         data = dict(queryDict)
         print('+++++++++++++++++++++++',data['data'])
-        if len(data)<=20:
-            return 'DATA SHOULD BE OF MORE THAN 20 WORDS',IsIt[0]
         news = news_article(data['data'][0])
+        if len(news)<=20:
+            return 'DATA SHOULD BE OF MORE THAN 20 WORDS',IsIt[0]
         ANS=Predictor(news)
         if 'opindia' in data['data'][0]:
             ANS=0
