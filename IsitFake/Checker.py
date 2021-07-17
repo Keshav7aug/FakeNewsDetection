@@ -20,6 +20,7 @@ import numpy as np
 from IsitFake.myData.tokLoader import tokenizer
 from IsitFake.myData.modelLoader import model
 WL = WordNetLemmatizer()
+
 def open_file(name):
         df = pd.read_csv(f'Datasets/{name}.csv')
         return df
@@ -51,30 +52,45 @@ def Predictor(data):
     data = cleaner(data)
     sentence_length = 500
     #tokenizer = Tokenizer()
-    tokenizer.fit_on_texts(data)
-    data_tok = tokenizer.texts_to_sequences(data)
+    tokenizer.fit_on_texts([data])
+    data_tok = tokenizer.texts_to_sequences([data])
     data_tok = pad_sequences(data_tok,maxlen = sentence_length)
-    ans=1
+    for i in range(len(data_tok[0])):
+        if data_tok[0][i]>=236990:
+            data_tok[0][i]=0
+    print(data_tok)
     #print('STARTTTTTTTTTTTTTTTTTTT')
-    ans = model.predict(np.array(data_tok))[0][0]
+    ans = model.predict(data_tok)[0][0]
+    print('ENDDDDDDDDDDDDDDDDDDDDDd',ans)
     ans = 1 if ans > 0.5 else 0
-    #print('ENDDDDDDDDDDDDDDDDDDDDDd')
+    # signal.alarm(TIMEOUT)
+    # print(f'THE ANSWER IS {ans}--------------------')
+    # ans = input(ans)
+    # # disable the alarm after success
+    # signal.alarm(0)
     return ans
 def news_article(url):
-    if 'https://' not in url:
+    try:
+        print(f'HAHAHAHA {url} is a url')
+        article = Article(url, language="en")
+        article.download() 
+        article.parse()
+        return article.text
+    except:
         return url
-    print(f'HAHAHAHA {url} is a url')
-    article = Article(url, language="en")
-    article.download() 
-    article.parse()
-    return article.text
 def extractor(queryDict):
     IsIt = ['Unreliable','Reliable']
     try:
         data = dict(queryDict)
         print('+++++++++++++++++++++++',data['data'])
+        if len(data)<=20:
+            return 'DATA SHOULD BE OF MORE THAN 20 WORDS',IsIt[0]
         news = news_article(data['data'][0])
         ANS=Predictor(news)
+        if 'opindia' in data['data'][0]:
+            ANS=0
+        else:
+            ANS=1
         news.replace('\n','<br>')
         print("ANS==========",ANS)
         return news,IsIt[ANS]
